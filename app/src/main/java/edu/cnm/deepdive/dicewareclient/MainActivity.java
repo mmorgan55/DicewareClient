@@ -1,5 +1,6 @@
 package edu.cnm.deepdive.dicewareclient;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +8,8 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -37,6 +40,25 @@ public class MainActivity extends AppCompatActivity {
     setupService();
   }
 
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.options, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    boolean handled = true;
+    switch (item.getItemId()) {
+      case R.id.sign_out:
+        signOut();
+        break;
+      default:
+        handled = super.onOptionsItemSelected(item);
+    }
+    return handled;
+  }
+
   private void setupService() {
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
@@ -54,14 +76,10 @@ public class MainActivity extends AppCompatActivity {
     progressSpinner = findViewById(R.id.progress_spinner);
     words = findViewById(R.id.words);
     generate = findViewById(R.id.generate);
-    generate.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        new GenerateTask().execute();
-      }
-    });
+    generate.setOnClickListener(v -> new GenerateTask().execute());
     length.addTextChangedListener(new TextWatcher() {
       CharSequence before;
+
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         before = s;
@@ -82,6 +100,16 @@ public class MainActivity extends AppCompatActivity {
           length.addTextChangedListener(this);
         }
       }
+    });
+  }
+
+  private void signOut() {
+    DicewareApplication application = DicewareApplication.getInstance();
+    application.getClient().signOut().addOnCompleteListener(this, (task) -> {
+      application.setAccount(null);
+      Intent intent = new Intent(this, LoginActivity.class);
+      intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+      startActivity(intent);
     });
   }
 

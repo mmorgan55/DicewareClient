@@ -6,4 +6,6 @@
   <string name="client_id">32597069429-bkugnbcktcpht1veh1cb708ma16qo8kd.apps.googleusercontent.com</string>
   <string name="sign_in_error">Unable to sign in. Please check your credentials and connection.</string>
   <string name="log_out">Log Out</string>
+  <string name="oauth2_header">Bearer %s</string>
+  <string name="base_url">https://mmorgan55.space/rest/</string>
 </resources>

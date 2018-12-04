@@ -23,6 +23,7 @@ import java.io.IOException;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
   private ProgressBar progressSpinner;
   private TextInputEditText length;
   private DicewareService service;
+  private int numWords;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .create();
-    service = new Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/")
+    service = new Builder()
+        .baseUrl(getString(R.string.base_url))
         .addConverterFactory(GsonConverterFactory.create(gson))
         .build()
         .create(DicewareService.class);
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
   private void setupUI() {
     setContentView(R.layout.activity_main);
     length = findViewById(R.id.length);
+    numWords = Integer.parseInt(length.getText().toString());
     progressSpinner = findViewById(R.id.progress_spinner);
     words = findViewById(R.id.words);
     generate = findViewById(R.id.generate);
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
       @Override
       public void afterTextChanged(Editable s) {
         try {
-          Integer.parseInt(s.toString());
+          numWords = Integer.parseInt(s.toString().trim());
         } catch (NumberFormatException e) {
           length.removeTextChangedListener(this);
           length.setText(before);
@@ -124,7 +127,9 @@ public class MainActivity extends AppCompatActivity {
     protected String[] doInBackground(Void... voids) {
       String[] passphrase = null;
       try {
-        Call<String[]> call = service.get(Integer.parseInt(length.getText().toString()));
+        String token = getString(
+            R.string.oauth2_header, DicewareApplication.getInstance().getAccount().getIdToken());
+        Call<String[]> call = service.get(token, numWords);
         Response<String[]> response = call.execute();
         if (response.isSuccessful()) {
           passphrase = response.body();
